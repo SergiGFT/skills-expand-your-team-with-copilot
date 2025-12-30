@@ -472,6 +472,58 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function to create share URL for an activity
+  function createShareUrl(activityName) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    return `${baseUrl}?activity=${encodeURIComponent(activityName)}`;
+  }
+
+  // Function to create shareable text for an activity
+  function createShareText(activityName, description, schedule) {
+    return `Check out this activity at Mergington High School: ${activityName} - ${description} Schedule: ${schedule}`;
+  }
+
+  // Function to handle social sharing
+  function handleShare(platform, activityName, description, schedule) {
+    const shareUrl = createShareUrl(activityName);
+    const shareText = createShareText(activityName, description, schedule);
+    
+    let url;
+    switch (platform) {
+      case 'facebook':
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        window.open(url, '_blank', 'width=600,height=400');
+        break;
+      case 'twitter':
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+        window.open(url, '_blank', 'width=600,height=400');
+        break;
+      case 'email':
+        const subject = `Check out ${activityName} at Mergington High School`;
+        const body = `${shareText}\n\nLearn more: ${shareUrl}`;
+        window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showMessage('Link copied to clipboard!', 'success');
+          // Visual feedback on the button
+          const copyButtons = document.querySelectorAll(`.share-button.copy-link[data-activity="${activityName}"]`);
+          copyButtons.forEach(btn => {
+            btn.classList.add('copied');
+            btn.textContent = '✓';
+            setTimeout(() => {
+              btn.classList.remove('copied');
+              btn.textContent = '🔗';
+            }, 2000);
+          });
+        }).catch(err => {
+          console.error('Failed to copy link:', err);
+          showMessage('Failed to copy link', 'error');
+        });
+        break;
+    }
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -552,6 +604,23 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="social-share-container">
+        <span class="share-label">Share:</span>
+        <div class="social-share-buttons">
+          <button class="share-button facebook" data-activity="${name}" data-platform="facebook" title="Share on Facebook">
+            📘
+          </button>
+          <button class="share-button twitter" data-activity="${name}" data-platform="twitter" title="Share on Twitter">
+            🐦
+          </button>
+          <button class="share-button email" data-activity="${name}" data-platform="email" title="Share via Email">
+            ✉️
+          </button>
+          <button class="share-button copy-link" data-activity="${name}" data-platform="copy" title="Copy link">
+            🔗
+          </button>
+        </div>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -575,6 +644,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
+    });
+
+    // Add click handlers for social share buttons
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const platform = button.dataset.platform;
+        handleShare(platform, name, details.description, formattedSchedule);
+      });
     });
 
     // Add click handler for register button (only when authenticated)
