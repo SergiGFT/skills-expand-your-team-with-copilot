@@ -478,9 +478,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${baseUrl}?activity=${encodeURIComponent(activityName)}`;
   }
 
+  // School name constant for sharing
+  const SCHOOL_NAME = "Mergington High School";
+
   // Function to create shareable text for an activity
   function createShareText(activityName, description, schedule) {
-    return `Check out this activity at Mergington High School: ${activityName} - ${description} Schedule: ${schedule}`;
+    return `Check out this activity at ${SCHOOL_NAME}: ${activityName} - ${description} Schedule: ${schedule}`;
   }
 
   // Function to handle social sharing
@@ -499,15 +502,21 @@ document.addEventListener("DOMContentLoaded", () => {
         window.open(url, '_blank', 'width=600,height=400');
         break;
       case 'email':
-        const subject = `Check out ${activityName} at Mergington High School`;
+        const subject = `Check out ${activityName} at ${SCHOOL_NAME}`;
         const body = `${shareText}\n\nLearn more: ${shareUrl}`;
         window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         break;
       case 'copy':
+        // Check if clipboard API is available
+        if (!navigator.clipboard) {
+          showMessage('Clipboard not available. Please copy the link manually.', 'error');
+          break;
+        }
+        
         navigator.clipboard.writeText(shareUrl).then(() => {
           showMessage('Link copied to clipboard!', 'success');
-          // Visual feedback on the button
-          const copyButtons = document.querySelectorAll(`.share-button.copy-link[data-activity="${activityName}"]`);
+          // Visual feedback on the button - using data attribute to find the specific button
+          const copyButtons = document.querySelectorAll(`.share-button.copy-link[data-activity="${CSS.escape(activityName)}"]`);
           copyButtons.forEach(btn => {
             btn.classList.add('copied');
             btn.textContent = '✓';
