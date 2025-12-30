@@ -515,8 +515,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
         navigator.clipboard.writeText(shareUrl).then(() => {
           showMessage('Link copied to clipboard!', 'success');
-          // Visual feedback on the button - using data attribute to find the specific button
-          const copyButtons = document.querySelectorAll(`.share-button.copy-link[data-activity="${CSS.escape(activityName)}"]`);
+          // Visual feedback on the button - find buttons by data attribute
+          const copyButtons = document.querySelectorAll(`.share-button.copy-link[data-activity="${activityName}"]`);
           copyButtons.forEach(btn => {
             btn.classList.add('copied');
             btn.textContent = '✓';
@@ -535,6 +535,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function to render a single activity card
   function renderActivityCard(name, details) {
+    // Note: Activity names (name parameter) come from the backend database and are trusted content.
+    // They are not user-generated input, so no additional escaping is needed for HTML attributes.
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
 
